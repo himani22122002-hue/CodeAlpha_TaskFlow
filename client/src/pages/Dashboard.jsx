@@ -1,12 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { FaFolder, FaTasks, FaCheckCircle, FaPlus } from 'react-icons/fa';
+import api from '../api/api';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 
-const StatCard = ({ title, count, icon: Icon, colorClass }) => (
+const StatCard = ({ title, count, icon: Icon, colorClass, loading }) => (
   <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border border-gray-100">
     <div className="flex items-center justify-between">
       <div>
         <p className="text-gray-500 text-sm">{title}</p>
-        <h3 className="text-5xl font-bold mt-2">{count}</h3>
+        {loading ? (
+          <div className="h-10 w-16 bg-gray-200 rounded animate-pulse mt-2"></div>
+        ) : (
+          <h3 className="text-5xl font-bold mt-2">{count}</h3>
+        )}
       </div>
       <div className={`p-4 rounded-xl ${colorClass}`}>
         <Icon className="text-2xl text-white" />
@@ -16,6 +23,34 @@ const StatCard = ({ title, count, icon: Icon, colorClass }) => (
 );
 
 export default function Dashboard() {
+  const [stats, setStats] = useState({ projects: 0, activeTasks: 0, completedTasks: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [projectsRes, tasksRes] = await Promise.all([
+          api.get('/projects'),
+          api.get('/tasks')
+        ]);
+
+        const projects = projectsRes.data;
+        const tasks = tasksRes.data;
+
+        setStats({
+          projects: projects.length,
+          activeTasks: tasks.filter(t => t.status !== 'Completed').length,
+          completedTasks: tasks.filter(t => t.status === 'Completed').length
+        });
+      } catch (error) {
+        toast.error('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <div>
       {/* Hero Section */}
@@ -32,9 +67,9 @@ export default function Dashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <StatCard title="Total Projects" count="5" icon={FaFolder} colorClass="bg-blue-500" />
-        <StatCard title="Active Tasks" count="12" icon={FaTasks} colorClass="bg-orange-500" />
-        <StatCard title="Completed Tasks" count="28" icon={FaCheckCircle} colorClass="bg-green-500" />
+        <StatCard title="Total Projects" count={stats.projects} icon={FaFolder} colorClass="bg-blue-500" loading={loading} />
+        <StatCard title="Active Tasks" count={stats.activeTasks} icon={FaTasks} colorClass="bg-orange-500" loading={loading} />
+        <StatCard title="Completed Tasks" count={stats.completedTasks} icon={FaCheckCircle} colorClass="bg-green-500" loading={loading} />
       </div>
 
       {/* Quick Actions */}
@@ -53,7 +88,7 @@ export default function Dashboard() {
       {/* Recent Activity */}
       <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 text-center">
         <h2 className="text-xl font-bold mb-4">Recent Activity</h2>
-        <div className="text-gray-500">No recent activity</div>
+        {loading ? <LoadingSkeleton count={1} /> : <div className="text-gray-500">No recent activity</div>}
       </div>
     </div>
   );
