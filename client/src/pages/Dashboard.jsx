@@ -23,7 +23,7 @@ const StatCard = ({ title, count, icon: Icon, colorClass, loading }) => (
 );
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ projects: 0, activeTasks: 0, completedTasks: 0 });
+  const [stats, setStats] = useState({ projects: 0, activeTasks: 0, completedTasks: 0, recentTasks: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,10 +37,14 @@ export default function Dashboard() {
         const projects = projectsRes.data;
         const tasks = tasksRes.data;
 
+        // Sort tasks by createdAt desc
+        const sortedTasks = [...tasks].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
         setStats({
           projects: projects.length,
           activeTasks: tasks.filter(t => t.status !== 'Completed').length,
-          completedTasks: tasks.filter(t => t.status === 'Completed').length
+          completedTasks: tasks.filter(t => t.status === 'Completed').length,
+          recentTasks: sortedTasks.slice(0, 5)
         });
       } catch (error) {
         toast.error('Failed to load dashboard data');
@@ -86,9 +90,29 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 text-center">
-        <h2 className="text-xl font-bold mb-4">Recent Activity</h2>
-        {loading ? <LoadingSkeleton count={1} /> : <div className="text-gray-500">No recent activity</div>}
+      <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+        <h2 className="text-xl font-bold mb-6">Recent Activity</h2>
+        {loading ? (
+          <LoadingSkeleton count={3} />
+        ) : (
+          <div className="space-y-4">
+            {stats.recentTasks.length > 0 ? (
+              stats.recentTasks.map(task => (
+                <div key={task._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div>
+                    <p className="font-semibold">{task.title}</p>
+                    <p className="text-xs text-gray-500">{new Date(task.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-md ${task.status === 'Completed' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                    {task.status}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500">No recent activity</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
