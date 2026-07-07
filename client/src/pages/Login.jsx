@@ -24,42 +24,44 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login to TaskFlow</h2>
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] p-4">
+      <div className="bg-white p-10 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
+        <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">Welcome Back</h2>
+        {error && <p className="text-red-500 text-center mb-6 bg-red-50 p-2 rounded-xl">{error}</p>}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded mt-1"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              placeholder="name@company.com"
               required
             />
           </div>
-          <div className="mb-6">
-            <label className="block text-gray-700">Password</label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded mt-1"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              placeholder="••••••••"
               required
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-blue-300"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-semibold hover:scale-[1.02] transition-all disabled:opacity-50"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-        <p className="mt-4 text-center">
+        <p className="mt-8 text-center text-gray-600">
           Don't have an account?{" "}
-          <Link to="/register" className="text-blue-600 hover:underline">
+          <Link to="/register" className="text-blue-600 font-semibold hover:underline">
             Register
           </Link>
         </p>

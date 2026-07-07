@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./components/PrivateRoute";
+import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -12,6 +14,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -19,7 +22,9 @@ function App() {
             path="/"
             element={
               <PrivateRoute>
-                <Dashboard />
+                <Layout>
+                  <Dashboard />
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -27,7 +32,9 @@ function App() {
             path="/projects"
             element={
               <PrivateRoute>
-                <Projects />
+                <Layout>
+                  <Projects />
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -35,7 +42,9 @@ function App() {
             path="/projects/:id"
             element={
               <PrivateRoute>
-                <ProjectDetails />
+                <Layout>
+                  <ProjectDetails />
+                </Layout>
               </PrivateRoute>
             }
           />
@@ -43,7 +52,9 @@ function App() {
             path="/tasks"
             element={
               <PrivateRoute>
-                <Tasks />
+                <Layout>
+                  <Tasks />
+                </Layout>
               </PrivateRoute>
             }
           />
