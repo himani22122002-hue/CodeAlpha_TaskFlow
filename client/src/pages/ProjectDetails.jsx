@@ -9,31 +9,48 @@ const Comments = ({ taskId }) => {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
 
-    useEffect(() => {
+    const fetchComments = () => {
         api.get(`/comments/task/${taskId}`).then(res => setComments(res.data)).catch(() => toast.error('Failed to load comments'));
-    }, [taskId]);
+    };
+
+    useEffect(() => { fetchComments(); }, [taskId]);
 
     const handleAddComment = async () => {
         if (!newComment.trim()) return;
         try {
             await api.post('/comments', { task: taskId, text: newComment });
             setNewComment('');
-            api.get(`/comments/task/${taskId}`).then(res => setComments(res.data));
+            fetchComments();
             toast.success('Comment added');
         } catch { toast.error('Failed to add comment'); }
     };
 
+    const handleDeleteComment = async (commentId) => {
+        if (!window.confirm('Delete this comment?')) return;
+        try {
+            await api.delete(`/comments/${commentId}`);
+            fetchComments();
+            toast.success('Comment deleted');
+        } catch { toast.error('Failed to delete comment'); }
+    };
+
     return (
-        <div className="mt-4 bg-gray-50 p-4 rounded-xl">
-            <h4 className="font-semibold mb-2">Comments</h4>
-            {comments.map(c => (
-                <div key={c._id} className="text-sm mb-2 p-2 bg-white rounded-md border border-gray-100 flex justify-between">
-                    <div><span className="font-bold">{c.user?.name}:</span> {c.text}</div>
-                </div>
-            ))}
-            <div className="flex gap-2 mt-2">
-                <input value={newComment} onChange={e => setNewComment(e.target.value)} className="flex-grow p-2 rounded-md border" placeholder="Write a comment..." />
-                <button onClick={handleAddComment} className="bg-blue-600 text-white p-2 rounded-md"><FaPaperPlane /></button>
+        <div className="mt-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <h4 className="font-semibold mb-3">Comments</h4>
+            <div className="space-y-3 mb-4">
+                {comments.map(c => (
+                    <div key={c._id} className="text-sm p-3 bg-white rounded-lg border border-gray-100 shadow-sm flex justify-between items-start">
+                        <div>
+                            <div className="font-bold text-gray-700">{c.user?.name} <span className="text-xs text-gray-400 font-normal ml-2">{new Date(c.createdAt).toLocaleDateString()}</span></div>
+                            <div className="text-gray-600 mt-1">{c.text}</div>
+                        </div>
+                        <button onClick={() => handleDeleteComment(c._id)} className="text-red-400 hover:text-red-600"><FaTrash size={12} /></button>
+                    </div>
+                ))}
+            </div>
+            <div className="flex gap-2">
+                <input value={newComment} onChange={e => setNewComment(e.target.value)} className="flex-grow p-2 rounded-lg border border-gray-200" placeholder="Write a comment..." />
+                <button onClick={handleAddComment} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700">Post</button>
             </div>
         </div>
     );
@@ -174,6 +191,7 @@ export default function ProjectDetails() {
                         <td className="p-4"><span className={`text-xs px-2 py-1 rounded-md ${task.priority === 'High' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`}>{task.priority}</span></td>
                         <td className="p-4"><span className={`text-xs px-2 py-1 rounded-md ${task.status === 'Completed' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>{task.status}</span></td>
                         <td className="p-4 text-right">
+                            <button onClick={(e) => { e.stopPropagation(); setExpandedTask(expandedTask === task._id ? null : task._id); }} className="text-gray-400 hover:text-blue-600 mr-2"><FaComments /></button>
                             <button onClick={(e) => { e.stopPropagation(); setEditingTask(task); setIsModalOpen(true); }} className="text-gray-400 hover:text-blue-600 mr-2"><FaEdit /></button>
                             <button onClick={(e) => { e.stopPropagation(); handleDelete(task._id); }} className="text-gray-400 hover:text-red-600"><FaTrash /></button>
                         </td>
