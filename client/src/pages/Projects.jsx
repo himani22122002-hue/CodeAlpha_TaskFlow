@@ -1,50 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { FaPlus, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaFolder } from 'react-icons/fa';
 import api from '../api/api';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import ProjectCard from '../components/ProjectCard';
-
-const ProjectModal = ({ isOpen, onClose, onSave, project }) => {
-  const [formData, setFormData] = useState(project || { title: '', description: '' });
-
-  useEffect(() => {
-    if (project) setFormData(project);
-    else setFormData({ title: '', description: '' });
-  }, [project, isOpen]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white p-8 rounded-2xl w-full max-w-md shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">{project ? 'Edit Project' : 'Create Project'}</h2>
-          <button onClick={onClose}><FaTimes /></button>
-        </div>
-        <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Title</label>
-            <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2 border rounded-xl" required />
-          </div>
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full px-4 py-2 border rounded-xl" />
-          </div>
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-xl font-semibold">Save</button>
-        </form>
-      </div>
-    </div>
-  );
-};
+import ConfirmationModal from '../components/ConfirmationModal';
+import ProjectModal from '../components/ProjectModal';
 
 export default function Projects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalLoading, setIsModalLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: null });
 
   const fetchProjects = async () => {
     try {
@@ -62,30 +33,33 @@ export default function Projects() {
 
   const handleSave = async (data) => {
     try {
+      setIsModalLoading(true);
       if (editingProject) {
         await api.put(`/projects/${editingProject._id}`, data);
-        toast.success('Project updated');
+        toast.success('Project updated successfully');
       } else {
         await api.post('/projects', data);
-        toast.success('Project created');
+        toast.success('Project created successfully');
       }
       setIsModalOpen(false);
       setEditingProject(null);
       fetchProjects();
     } catch (err) {
       toast.error('Operation failed');
+    } finally {
+      setIsModalLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure?')) {
-      try {
-        await api.delete(`/projects/${id}`);
-        toast.success('Project deleted');
-        fetchProjects();
-      } catch (err) {
-        toast.error('Failed to delete');
-      }
+  const handleDelete = async () => {
+    try {
+      await api.delete(`/projects/${deleteConfirm.id}`);
+      toast.success('Project deleted successfully');
+      fetchProjects();
+    } catch (err) {
+      toast.error('Failed to delete project');
+    } finally {
+      setDeleteConfirm({ isOpen: false, id: null });
     }
   };
 
@@ -98,7 +72,7 @@ export default function Projects() {
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Projects</h1>
-        <button onClick={() => { setEditingProject(null); setIsModalOpen(true); }} className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-blue-700 transition-all">
+        <button onClick={() => { setEditingProject(null); setIsModalOpen(true); }} className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-blue-700 transition-all hover:scale-105">
           <FaPlus className="mr-2" /> Create Project
         </button>
       </div>
@@ -110,7 +84,7 @@ export default function Projects() {
         </div>
         <div className="flex bg-gray-100 p-1 rounded-2xl">
           {['All', 'Active', 'Completed'].map(f => (
-            <button key={f} onClick={() => setFilter(f)} className={`px-6 py-2 rounded-xl font-medium transition-all ${filter === f ? 'bg-white shadow text-blue-600' : 'text-gray-600'}`}>
+            <button key={f} onClick={() => setFilter(f)} className={`px-6 py-2 rounded-xl font-medium transition-all ${filter === f ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
               {f}
             </button>
           ))}
@@ -121,14 +95,20 @@ export default function Projects() {
         filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map(project => (
-              <ProjectCard key={project._id} project={project} onEdit={p => { setEditingProject(p); setIsModalOpen(true); }} onDelete={handleDelete} />
+              <ProjectCard key={project._id} project={project} onEdit={p => { setEditingProject(p); setIsModalOpen(true); }} onDelete={(id) => setDeleteConfirm({ isOpen: true, id })} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 text-gray-500">No projects found.</div>
+          <div className="bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center transition-all hover:shadow-md">
+            <FaFolder className="text-5xl text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-800 mb-2">No Projects Found</h3>
+            <p className="text-gray-500 mb-6">Get started by creating a new project.</p>
+            <button onClick={() => { setEditingProject(null); setIsModalOpen(true); }} className="bg-blue-600 text-white px-6 py-2 rounded-xl font-semibold hover:bg-blue-700 transition-all hover:scale-105">Create Project</button>
+          </div>
         )
       )}
-      <ProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} project={editingProject} />
+      <ProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleSave} initialData={editingProject} loading={isModalLoading} />
+      <ConfirmationModal isOpen={deleteConfirm.isOpen} title="Delete Project" message="Are you sure you want to delete this project? This action cannot be undone." onConfirm={handleDelete} onCancel={() => setDeleteConfirm({ isOpen: false, id: null })} />
     </div>
   );
 }

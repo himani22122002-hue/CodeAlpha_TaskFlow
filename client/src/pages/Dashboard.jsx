@@ -64,7 +64,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-4xl font-bold mb-2">Good Morning, Himani 👋</h1>
           <p className="text-blue-100">Here's what's happening with your projects today.</p>
-          <button onClick={() => navigate('/projects')} className="mt-6 bg-white text-blue-700 px-6 py-2 rounded-xl font-semibold hover:bg-blue-50 transition-all">
+          <button onClick={() => navigate('/projects')} className="mt-6 bg-white text-blue-700 px-6 py-2 rounded-xl font-semibold hover:bg-blue-50 transition-all hover:scale-105">
             Create Project
           </button>
         </div>
@@ -86,7 +86,7 @@ export default function Dashboard() {
         <button className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-103">
           <FaPlus className="mr-2 text-blue-600" /> Add Task
         </button>
-        <button className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-103">
+        <button onClick={() => navigate('/tasks')} className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-103">
           <FaTasks className="mr-2 text-blue-600" /> View Tasks
         </button>
       </div>
@@ -100,7 +100,7 @@ export default function Dashboard() {
           <div className="space-y-4">
             {stats.recentTasks.length > 0 ? (
               stats.recentTasks.map(task => (
-                <div key={task._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                <div key={task._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                   <div>
                     <p className="font-semibold">{task.title}</p>
                     <p className="text-xs text-gray-500">{new Date(task.createdAt).toLocaleDateString()}</p>
@@ -111,7 +111,9 @@ export default function Dashboard() {
                 </div>
               ))
             ) : (
-              <div className="text-center text-gray-500">No recent activity</div>
+              <div className="p-8 text-center text-gray-500 border-2 border-dashed rounded-2xl">
+                <p>No recent activity found.</p>
+              </div>
             )}
           </div>
         )}
