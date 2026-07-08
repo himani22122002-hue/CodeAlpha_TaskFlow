@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { FaFolder, FaTasks, FaCheckCircle, FaPlus } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/api';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 
@@ -25,6 +26,7 @@ const StatCard = ({ title, count, icon: Icon, colorClass, loading }) => (
 export default function Dashboard() {
   const [stats, setStats] = useState({ projects: 0, activeTasks: 0, completedTasks: 0, recentTasks: [] });
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,7 +64,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-4xl font-bold mb-2">Good Morning, Himani 👋</h1>
           <p className="text-blue-100">Here's what's happening with your projects today.</p>
-          <button className="mt-6 bg-white text-blue-700 px-6 py-2 rounded-xl font-semibold hover:bg-blue-50 transition-all">
+          <button onClick={() => navigate('/projects')} className="mt-6 bg-white text-blue-700 px-6 py-2 rounded-xl font-semibold hover:bg-blue-50 transition-all">
             Create Project
           </button>
         </div>
@@ -78,7 +80,7 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <button className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-103">
+        <button onClick={() => navigate('/projects')} className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-103">
           <FaPlus className="mr-2 text-blue-600" /> New Project
         </button>
         <button className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-103">

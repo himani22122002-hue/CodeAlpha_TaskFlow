@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { FaPlus, FaSearch, FaEdit, FaTrash, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaTimes } from 'react-icons/fa';
 import api from '../api/api';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import ProjectCard from '../components/ProjectCard';
 
 const ProjectModal = ({ isOpen, onClose, onSave, project }) => {
-  const [formData, setFormData] = useState(project || { name: '', description: '' });
+  const [formData, setFormData] = useState(project || { title: '', description: '' });
+
+  useEffect(() => {
+    if (project) setFormData(project);
+    else setFormData({ title: '', description: '' });
+  }, [project, isOpen]);
 
   if (!isOpen) return null;
 
@@ -18,8 +24,8 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }) => {
         </div>
         <form onSubmit={(e) => { e.preventDefault(); onSave(formData); }}>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Name</label>
-            <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-2 border rounded-xl" required />
+            <label className="block text-sm font-medium mb-1">Title</label>
+            <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full px-4 py-2 border rounded-xl" required />
           </div>
           <div className="mb-6">
             <label className="block text-sm font-medium mb-1">Description</label>
@@ -36,6 +42,7 @@ export default function Projects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
 
@@ -82,7 +89,10 @@ export default function Projects() {
     }
   };
 
-  const filteredProjects = projects.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredProjects = projects.filter(p => 
+    p.title.toLowerCase().includes(search.toLowerCase()) &&
+    (filter === 'All' || p.status === filter)
+  );
 
   return (
     <div>
@@ -93,26 +103,30 @@ export default function Projects() {
         </button>
       </div>
 
-      <div className="mb-8 relative">
-        <FaSearch className="absolute left-3 top-3 text-gray-400" />
-        <input type="text" placeholder="Search projects..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-grow">
+          <FaSearch className="absolute left-3 top-3.5 text-gray-400" />
+          <input type="text" placeholder="Search projects..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+        </div>
+        <div className="flex bg-gray-100 p-1 rounded-2xl">
+          {['All', 'Active', 'Completed'].map(f => (
+            <button key={f} onClick={() => setFilter(f)} className={`px-6 py-2 rounded-xl font-medium transition-all ${filter === f ? 'bg-white shadow text-blue-600' : 'text-gray-600'}`}>
+              {f}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? <LoadingSkeleton count={3} /> : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map(project => (
-            <div key={project._id} className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-100">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold">{project.name}</h3>
-                <div className="flex space-x-2 text-gray-400">
-                  <button onClick={() => { setEditingProject(project); setIsModalOpen(true); }} className="hover:text-blue-600"><FaEdit /></button>
-                  <button onClick={() => handleDelete(project._id)} className="hover:text-red-600"><FaTrash /></button>
-                </div>
-              </div>
-              <p className="text-gray-500 mb-4 text-sm">{project.description || 'No description'}</p>
-            </div>
-          ))}
-        </div>
+        filteredProjects.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map(project => (
+              <ProjectCard key={project._id} project={project} onEdit={p => { setEditingProject(p); setIsModalOpen(true); }} onDelete={handleDelete} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 text-gray-500">No projects found.</div>
+        )
       )}
       <ProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} project={editingProject} />
     </div>
