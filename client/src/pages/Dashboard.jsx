@@ -83,7 +83,7 @@ export default function Dashboard() {
         <button onClick={() => navigate('/projects')} className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-103">
           <FaPlus className="mr-2 text-blue-600" /> New Project
         </button>
-        <button className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-103">
+        <button onClick={() => navigate('/tasks', { state: { openCreateModal: true } })} className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-103">
           <FaPlus className="mr-2 text-blue-600" /> Add Task
         </button>
         <button onClick={() => navigate('/tasks')} className="flex items-center justify-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-103">

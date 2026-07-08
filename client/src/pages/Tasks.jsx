@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { FaPlus, FaSearch, FaEdit, FaTrash, FaTasks } from 'react-icons/fa';
 import api from '../api/api';
@@ -18,6 +19,14 @@ export default function Tasks() {
   const [editingTask, setEditingTask] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, id: null });
 
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.openCreateModal) {
+        setIsModalOpen(true);
+    }
+  }, [location.state]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -30,6 +39,7 @@ export default function Tasks() {
       setLoading(false);
     }
   };
+// ...
 
   useEffect(() => { fetchData(); }, []);
 
